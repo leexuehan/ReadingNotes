@@ -6,7 +6,7 @@
 
 ```
 			
-			CREATE TABLE `t` (
+	CREATE TABLE `t` (
               `id` int(11) NOT NULL,
               `city` varchar(16) NOT NULL,
               `name` varchar(16) NOT NULL,
@@ -23,7 +23,13 @@
 
 SQL 语句如下：
 
-```select city,name,age from t where city='杭州' order by name limit 1000  ;```
+
+
+select city,name,age from t where city='杭州' order by name limit 1000  ;
+
+```
+
+```
 
 语句看起来清晰简洁，一个 order by 再加一个 limit 就搞定了。
 
@@ -35,13 +41,13 @@ SQL 语句如下：
 
 在这张表里，我们给哪个字段加索引呢？
 
-观察 condition，因为 condition 是以 `city` 为条件进行过滤的，所以需要加索引的字段自然是 `city`。
+观察 where 后面的 condition，因为 condition 是以 `city` 为条件进行过滤的，所以需要加索引的字段自然是 `city`。
 
 从前面的文章我们也可以知道如何去查看一条语句的执行情况：使用 `explain` 命令。
 
 执行情况如下图所示。
 
-
+<div align=center>![]()
 
 `city` 字段加索引的示意图如下所示。
 
@@ -139,13 +145,35 @@ MySQL的设计思想：**如果内存足够用，就多使用内存，尽量减�
 
 怎么才能保证原来的数据就是有序的呢？
 
-我们现在已经有了一个 city 索引，已经保证了 city 字段是有序的，如果还要保证 name 是有序的，自然是为 name 也建立索引咯。
+我们现在已经有了一个 `city` 索引，已经保证了 `city` 字段是有序的，如果还要保证 `name` 是有序的，自然是为 `name` 也建立索引咯。
 
-本文中的场景是二者兼而有之，那么自然想到建立一个联合索引：city 和 name。
+本文中的场景是二者兼而有之，那么自然想到建立一个联合索引：`city` 和 `name`。
+
+使用以下命令建立联合索引：
+
+> > alter table t add index city_user(city, name);
+
+我们可以回顾联合索引的作用：天然按照 `city` 和 `name` 字段进行排序，首先保证 `city` 有序，然后如果 `city` 有序则在 `city` 下面取到的 `name` 也必然是有序的。
+
+采用联合索引后的查询流程变成了：
+
+1. 从联合索引（city，name）找到第一个满足 city=’杭州‘ 条件的主键 id；
+2. 根据这个主键 id 回到主键索引树上取出该行整行的记录，然后得到 name、city 和 age 三个字段的值，作为结果的一部分返回
+3. 从（city，name）中取到下一个记录主键 id
+4. 重复步骤 2、3，直到没有 city=’杭州‘ 这个条件不满足
+
+使用 explain 命令进行验证：
+
+<div align=center>![联合索引的explain](./explain_city_user.png)
+
+分析图中结果：
+
+1. Extra 一栏没有了 Using filesort，说明不需要使用排序了
+2. city 和 name  的联合索引会保证有序，所以此查询也不用扫描 4000 行，只要找到满足条件的前 1000 行即可。
 
 
 
-
+（全文完）
 
 ## 参考资料
 
