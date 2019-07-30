@@ -5,7 +5,6 @@
 现在有个市民信息表，给出的建表语句如下：
 
 ```
-			
 			CREATE TABLE `t` (
               `id` int(11) NOT NULL,
               `city` varchar(16) NOT NULL,
