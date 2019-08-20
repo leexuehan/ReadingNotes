@@ -71,6 +71,8 @@ InnoDB 存储引擎将 log buffer 中的 block 刷到这些 log_file 中时，�
 
 ## 更新流程
 
+### 脏日志（dirty log）
+
 前面提到，redo log 是由在内存中存在的部分（redo log buffer）和磁盘上存在的部分（redo log file）组成。所以，在更新 redo log 的时候，必然是先更新 redo log buffer，然后同步到 redo log file 进行持久化保存。
 
 ![更新层次](./flush_structure.png)
@@ -98,13 +100,39 @@ log buffer 中没有持久化到磁盘中的日志称为**脏日志（dirty log�
 3. 当log buffer中已经使用的内存超过一半时。
 4. 当 checkpoint 需要往前推进时。
 
-buffer pool 中未刷到磁盘中的数据称为脏数据（dirty data）。
+### 脏数据（dirty data）
 
+buffer pool 中未刷到磁盘中的数据称为**脏数据（dirty data）**。
 
+前面提到日志刷盘有4条规则，而数据刷盘只有一条规则：checkpoint 触发刷数据。
 
+在 InnoDB 存储引擎中，checkpoint 分为以下两种：
 
+1. sharp checkpoint
 
+   在重用 redo log 文件时，会将所有已经记录的redo log中对应的脏数据刷到磁盘。
 
+2. fuzzy checkpoint
+
+   一次只刷一小部分的日志到磁盘，而非将所有的脏日志刷盘。
+
+## 与 binlog 的区别
+
+binlog 也称为二进制日志，记录了 InnoDB 表的很多操作，也能实现重做功能，但是他们之间还是有一些区别的：
+
+1. 产生位置不同：
+
+   二进制日志是在 Server 层产生的，与存储引擎无关，只要对数据库进行修改就会产生二进制日志；
+
+   redo log 是在 InnoDB 存储引擎产生的，只记录存储引擎中表的修改。
+
+2. 二进制日志是**逻辑性语句**，如记录该行记录的每列的值是多少；redo log 是**物理格式**的日志，它记录的是数据库中每个页的修改。
+
+3. 提交方式不同：
+
+   二进制日志是一次写入的，而 redo log 是两阶段写入的。而且 redo log 会被滚动覆盖。
+
+4. redo log 记录的是物理页的修改情况，具有幂等性（多次操作前后的状态时一直的）。
 
 ## 参考资料
 
