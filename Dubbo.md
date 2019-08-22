@@ -117,7 +117,7 @@ dubbo 协议的报文格式详细如下图所示。
 
 ### 可以改进的点
 
-- 类似于 http 请求，通过 header 就可以确定要访问的资源，而 dubbo 需要涉及到用特定序列化协议才可以将服务名、方法、方法签名解析出来，并且这些资源定位符是 string 类型或者 string 数组，很容易转成 bytes，因此可以组装到 header 中。类似于 http2 的 header 压缩，对于 rpc 调用的资源也可以协商出来一个int来标识，从而提升性能，如果在`header`上组装资源定位符的话，该功能则更易实现。
+- 类似于 http 请求，通过 header 就可以确定要访问的资源，而 dubbo **需要涉及到用特定序列化协议**才可以将服务名、方法、方法签名解析出来，并且这些资源定位符是 string 类型或者 string 数组，很容易转成 bytes，因此可以组装到 header 中。类似于 http2 的 header 压缩，对于 rpc 调用的资源也可以协商出来一个int来标识，从而提升性能，如果在`header`上组装资源定位符的话，该功能则更易实现。
 - 通过 req/res 是否是请求后，可以精细定制协议，去掉一些不需要的标识和添加一些特定的标识。比如`status`,`twoWay`标识可以严格定制，去掉冗余标识。还有超时时间是作为 DUBBO 的 `attachment`进行传输的，理论上应该放到请求协议的header中，因为超时是网络请求中必不可少的。提到 `attachment` ，通过实现可以看到 `attachment` 中有一些是跟协议 `content`中已有的字段是重复的，比如 `path`和`version`等字段，这些会增大协议尺寸。
 - DUBBO 会将服务名`com.alibaba.middleware.hsf.guide.api.param.ModifyOrderPriceParam`，转换为`Lcom/alibaba/middleware/hsf/guide/api/param/ModifyOrderPriceParam;`，理论上是不必要的，最后追加一个`;`即可。
 - DUBBO协议没有预留扩展字段，没法新增标识，扩展性不太好，比如新增`响应上下文`的功能，只有改协议版本号的方式，但是这样要求客户端和服务端的版本都进行升级，对于分布式场景很不友好。
