@@ -484,7 +484,7 @@ private void doAcquireShared(int arg) {
 }
 ```
 
-与独占锁不同的是：在获取同步资源成功后，并不仅仅唤醒队列中头结点，而是调用 setHeadAndPropagate 方法依次将排到当前节点后面的共享锁节点全部唤醒。
+如果获取共享锁成功，则会调用 setHeadAndPropagate 方法依次唤醒后面所有正在阻塞的线程节点。
 
 ```Java
 private void setHeadAndPropagate(Node node, int propagate) {
@@ -498,10 +498,6 @@ private void setHeadAndPropagate(Node node, int propagate) {
     }
 }
 ```
-
-
-
-
 
 #### 释放
 
