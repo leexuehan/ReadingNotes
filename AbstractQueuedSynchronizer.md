@@ -448,7 +448,11 @@ private void cancelAcquire(Node node) {
 
 ### 共享锁
 
+有了上面独占锁的分析，共享锁就很清晰了。
+
 #### 获取
+
+首先还是在获取同步资源失败后，生成一个 Node 节点排到队尾。接着判断，如果Node 节点的前续节点是 head 节点，则继续调用 tryAcquireShared 方法再次获取。
 
 ```Java
 private void doAcquireShared(int arg) {
@@ -480,13 +484,50 @@ private void doAcquireShared(int arg) {
 }
 ```
 
+与独占锁不同的是：在获取同步资源成功后，并不仅仅唤醒队列中头结点，而是调用 setHeadAndPropagate 方法依次将排到当前节点后面的共享锁节点全部唤醒。
 
+```Java
+private void setHeadAndPropagate(Node node, int propagate) {
+    Node h = head; // Record old head for check below
+    setHead(node);
+    if (propagate > 0 || h == null || h.waitStatus < 0 ||
+        (h = head) == null || h.waitStatus < 0) {
+        Node s = node.next;
+        if (s == null || s.isShared())
+            doReleaseShared();
+    }
+}
+```
 
 
 
 
 
 #### 释放
+
+释放锁的核心代码如下：
+
+```Java
+for (;;) {
+    Node h = head;
+    if (h != null && h != tail) {
+        int ws = h.waitStatus;
+        if (ws == Node.SIGNAL) {
+            if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
+                continue;            // loop to recheck cases
+            unparkSuccessor(h);
+        }
+        else if (ws == 0 &&
+                 !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
+            continue;                // loop on failed CAS
+    }
+    //如果 head 节点改变，则会继续循环
+    if (h == head)                  
+        break;
+}
+```
+
+unparkSuccessor 唤醒线程节点之后，如果节点获取到锁，会改变 head 节点，所以会继续循环，继续唤醒head 节点的next节点，以此实现了所有线程节点的唤醒。
 
 
 
