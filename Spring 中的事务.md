@@ -33,7 +33,7 @@ AbstractPlatformTransactionManager 提供了默认实现模板，封装了固定
 5. 事务回滚情况下，清理并恢复事务状态
 6. 如果事务的 Synchronization 处于 active 状态，在指定点触发其回调接口
 
-
+2
 
 
 
