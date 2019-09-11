@@ -247,3 +247,4 @@ public class MyWaitNotify3{
 1. [Java并发编程：线程间协作](https://www.cnblogs.com/paddix/p/5381958.html)
 2. [OS中阻塞与挂起的区别&sleep()的实现原理](https://iamxpy.github.io/2017/09/20/OS%E4%B8%AD%E9%98%BB%E5%A1%9E%E4%B8%8E%E6%8C%82%E8%B5%B7%E7%9A%84%E5%8C%BA%E5%88%AB-sleep()%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/)
 3. [探索 Java 同步机制](https://www.ibm.com/developerworks/cn/java/j-lo-synchronized/index.html)
+
